@@ -40,14 +40,16 @@ export default {
         classes.push('hidden')
       }
       
-      // Type classes
-      if (props.cell.isMine) {
-        classes.push('mine')
-      } else if (props.cell.value > 0) {
-        classes.push('number')
-        classes.push(`number-${props.cell.value}`)
-      } else {
-        classes.push('empty')
+      // Type classes 
+      if (props.cell.state === CELL_STATES.REVEALED) {
+        if (props.cell.isMine) {
+          classes.push('mine')
+        } else if (props.cell.value > 0) {
+          classes.push('number')
+          classes.push(`number-${props.cell.value}`)
+        } else {
+          classes.push('empty')
+        }
       }
       
       // Game over state
@@ -165,7 +167,13 @@ export default {
 }
 
 .cell.mine {
-  background: #ff6b6b;
+  
+}
+
+.cell.hidden.mine {
+  background: #c0c0c0;
+  border-style: outset;
+  border-width: 2px;
 }
 
 .cell.mine-revealed {
