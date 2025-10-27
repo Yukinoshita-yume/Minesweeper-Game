@@ -1,19 +1,19 @@
 <template>
   <div class="game-board" :style="boardStyle">
-    <div 
-      v-for="(row, rowIndex) in board" 
-      :key="rowIndex" 
-      class="board-row"
-    >
+    <!-- 如果列数为 0，显示一个提示，便于排查 -->
+    <div v-if="cols === 0" class="empty-tip">No columns — board[0] is empty.</div>
+
+    <!-- 使用 display: contents 让每一行直接把单元格放进 grid -->
+    <template v-for="(row, r) in board" :key="`row-${r}`">
       <GameCell
-        v-for="(cell, colIndex) in row"
-        :key="`${rowIndex}-${colIndex}`"
+        v-for="(cell, c) in row"
+        :key="`cell-${r}-${c}`"
         :cell="cell"
         :game-status="gameStatus"
-        @click="handleCellClick(rowIndex, colIndex)"
-        @right-click="handleCellRightClick(rowIndex, colIndex)"
+        @click="() => emitCellClick(r, c)"
+        @right-click="() => emitCellRightClick(r, c)"
       />
-    </div>
+    </template>
   </div>
 </template>
 
@@ -21,68 +21,45 @@
 import { computed } from 'vue'
 import GameCell from './GameCell.vue'
 
+const CELL_SIZE = 30 // 固定每格 30px，确保可见
+
 export default {
   name: 'GameBoard',
-  components: {
-    GameCell
-  },
+  components: { GameCell },
   props: {
-    board: {
-      type: Array,
-      required: true
-    },
-    gameStatus: {
-      type: String,
-      required: true
-    }
+    board: { type: Array, required: true },
+    gameStatus: { type: String, required: true }
   },
   emits: ['cell-click', 'cell-right-click'],
   setup(props, { emit }) {
-    const boardStyle = computed(() => {
-      const cols = props.board[0] ? props.board[0].length : 0
-      return {
-        gridTemplateColumns: `repeat(${cols}, 1fr)`
-      }
-    })
-    
-    const handleCellClick = (row, col) => {
-      emit('cell-click', row, col)
-    }
-    
-    const handleCellRightClick = (row, col) => {
-      emit('cell-right-click', row, col)
-    }
-    
-    return {
-      boardStyle,
-      handleCellClick,
-      handleCellRightClick
-    }
+    const cols = computed(() => (props.board?.[0]?.length) || 0)
+    const boardStyle = computed(() => ({
+      display: 'grid',
+      gridTemplateColumns: `repeat(${cols.value}, ${CELL_SIZE}px)`,
+      gridAutoRows: `${CELL_SIZE}px`,
+      gap: '1px',
+      background: '#999',
+      border: '2px solid #666',
+      borderRadius: '6px',
+      padding: '2px',
+      width: 'fit-content',
+      maxWidth: '100%'
+    }))
+
+    const emitCellClick = (r, c) => emit('cell-click', r, c)
+    const emitCellRightClick = (r, c) => emit('cell-right-click', r, c)
+
+    return { cols, boardStyle, emitCellClick, emitCellRightClick }
   }
 }
 </script>
 
 <style scoped>
-.game-board {
-  display: grid;
-  gap: 1px;
-  background: #999;
-  border: 2px solid #666;
-  border-radius: 4px;
-  padding: 2px;
-  margin: 0 auto;
-  max-width: 100%;
-  overflow: auto;
-}
-
-.board-row {
-  display: contents;
-}
-
-@media (max-width: 600px) {
-  .game-board {
-    max-width: 100vw;
-    overflow-x: auto;
-  }
+.empty-tip {
+  padding: 8px 12px;
+  background: #fff3cd;
+  border: 1px solid #ffeeba;
+  color: #856404;
+  border-radius: 6px;
 }
 </style>
